@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Windows.h>
-#include <WinSock2.h>
 
+#include <optional>
 #include <unordered_map>
 #include <set>
 #include <string>
@@ -15,17 +15,17 @@ namespace
 	{
 		using is_transparent = char*;
 
-		bool operator()(const std::string& a_lhs, const std::string& a_rhs) const
+		inline bool operator()(const std::string& a_lhs, const std::string& a_rhs) const
 		{
 			return _stricmp(a_lhs.c_str(), a_rhs.c_str()) < 0;
 		}
 
-		bool operator()(const std::string& a_lhs, const is_transparent& a_rhs) const
+		inline bool operator()(const std::string& a_lhs, const is_transparent& a_rhs) const
 		{
 			return _stricmp(a_lhs.c_str(), a_rhs) < 0;
 		}
 
-		bool operator()(const is_transparent& a_lhs, const std::string& a_rhs) const
+		inline bool operator()(const is_transparent& a_lhs, const std::string& a_rhs) const
 		{
 			return _stricmp(a_lhs, a_rhs.c_str()) < 0;
 		}
@@ -57,6 +57,7 @@ private:
 	WinAPICacher& operator=(WinAPICacher&&) = delete;
 
 	static void ParseCurDir();
+	static std::optional<std::string> GetFirstFileName(const char* a_filePath);
 
 
 	static std::string _curDir;

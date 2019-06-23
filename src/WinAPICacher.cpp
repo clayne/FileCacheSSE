@@ -8,7 +8,8 @@
 
 #include <cassert>
 #include <cstring>
-#include <string_view>
+#include <optional>
+#include <string>
 
 #include "RE/Skyrim.h"
 #include "REL/Relocation.h"
@@ -305,6 +306,19 @@ void WinAPICacher::InstallHooks()
 		g_branchTrampoline.Write5Call(baseFunc.GetAddress(), reinterpret_cast<std::uintptr_t>(patch.getCode()));
 	}
 
+	// fix for pointless sanity check
+	{
+		// E8 ? ? ? ? E8 ? ? ? ? 48 8B 3D ? ? ? ?
+		constexpr std::uintptr_t ADDR = 0x0016E660;	// 1_5_80
+		constexpr UInt8 NOP = 0x90;
+
+		REL::Offset<std::uintptr_t> target(ADDR);
+
+		for (std::size_t i = 0x15E; i < 0x163; ++i) {
+			SafeWrite8(target.GetAddress() + i, NOP);
+		}
+	}
+
 	GlobalPaths::InstallHooks();
 	GlobalLocations::InstallHooks();
 	TESDataHandler::InstallHooks();
@@ -313,7 +327,12 @@ void WinAPICacher::InstallHooks()
 
 bool WinAPICacher::ExistsInCurDir(const char* a_file)
 {
-	return _curDirMap.find(a_file) != _curDirMap.end();
+	auto fileName = GetFirstFileName(a_file);
+	if (fileName) {
+		return _curDirMap.find(*fileName) != _curDirMap.end();
+	} else {
+		return false;
+	}
 }
 
 
@@ -436,6 +455,54 @@ void WinAPICacher::ParseCurDir()
 		} while (FindNextFile(handle, &findData));
 		FindClose(handle);
 	}
+}
+
+
+std::optional<std::string> WinAPICacher::GetFirstFileName(const char* a_filePath)
+{
+	constexpr std::size_t NPOS = static_cast<std::size_t>(-1);
+
+	std::size_t pos = 0;
+	std::size_t beg = NPOS;
+	bool done = false;
+	while (!done) {
+		switch (a_filePath[pos]) {
+		case '\\':
+		case '/':
+			break;
+		case '\0':
+			beg = NPOS;
+			done = true;
+			break;
+		default:
+			beg = pos;
+			done = true;
+			break;
+		}
+		++pos;
+	}
+
+	if (beg == NPOS) {
+		return std::nullopt;
+	}
+
+	std::size_t end = NPOS;
+	done = false;
+	while (!done) {
+		switch (a_filePath[pos]) {
+		case '\\':
+		case '/':
+		case '\0':
+			end = pos;
+			done = true;
+			break;
+		default:
+			break;
+		}
+		++pos;
+	}
+
+	return std::make_optional<std::string>(a_filePath, beg, end - beg);
 }
 
 
