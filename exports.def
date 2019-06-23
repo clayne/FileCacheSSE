@@ -1,0 +1,4 @@
+LIBRARY	"FileCacheSSE"
+EXPORTS
+SKSEPlugin_Query
+SKSEPlugin_Load
