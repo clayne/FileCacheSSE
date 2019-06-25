@@ -110,11 +110,28 @@ HANDLE WinAPICacher::Hook_FindFirstFileA(LPCSTR a_fileName, LPWIN32_FIND_DATAA a
 
 	std::string fileName(a_fileName);
 	if (result != INVALID_HANDLE_VALUE) {
-		while (!fileName.empty() && fileName.back() == '*') {
-			fileName.pop_back();
+		bool done = false;
+		while (!fileName.empty() && !done) {
+			switch (fileName.back()) {
+			case '*':
+				fileName.pop_back();
+				break;
+			default:
+				done = true;
+				break;
+			}
 		}
-		while (!fileName.empty() && (fileName.back() == '\\' || fileName.back() == '/')) {
-			fileName.pop_back();
+		done = false;
+		while (!fileName.empty() && !done) {
+			switch (fileName.back()) {
+			case '\\':
+			case '/':
+				fileName.pop_back();
+				break;
+			default:
+				done = true;
+				break;
+			}
 		}
 		_handleMap.insert({ result, fileName });
 		WIN32_FILE_ATTRIBUTE_DATA attributeData;
