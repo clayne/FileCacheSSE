@@ -15,6 +15,7 @@ extern "C" {
 #if _DEBUG
 		SKSE::Logger::SetFlushLevel(SKSE::Logger::Level::kDebugMessage);
 #endif
+		SKSE::Logger::UseLogStamp(false);
 
 		_MESSAGE("FileCacheSSE v%s", FCSH_VERSION_VERSTRING);
 
@@ -23,7 +24,7 @@ extern "C" {
 		a_info->version = FCSH_VERSION_MAJOR;
 
 		if (a_skse->IsEditor()) {
-			_FATALERROR("[FATAL ERROR] Loaded in editor, marking as incompatible!\n");
+			_FATALERROR("Loaded in editor, marking as incompatible!\n");
 			return false;
 		}
 
@@ -32,7 +33,7 @@ extern "C" {
 		case RUNTIME_VERSION_1_5_80:
 			break;
 		default:
-			_FATALERROR("[FATAL ERROR] Unsupported runtime version %08X!\n", a_skse->RuntimeVersion());
+			_FATALERROR("Unsupported runtime version %08X!\n", a_skse->RuntimeVersion());
 			return false;
 		}
 
@@ -42,28 +43,28 @@ extern "C" {
 
 	bool SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 	{
-		_MESSAGE("[MESSAGE] FileCacheSSE loaded");
+		_MESSAGE("FileCacheSSE loaded");
 
 		if (!SKSE::Init(a_skse)) {
 			return false;
 		}
 
 		if (g_branchTrampoline.Create(1024 * 1)) {
-			_MESSAGE("[MESSAGE] Branch trampoline creation successful");
+			_MESSAGE("Branch trampoline creation successful");
 		} else {
-			_FATALERROR("[FATAL ERROR] Branch trampoline creation failed!\n");
+			_FATALERROR("Branch trampoline creation failed!\n");
 			return false;
 		}
 
 		if (g_localTrampoline.Create(1024 * 1)) {
-			_MESSAGE("[MESSAGE] Local trampoline creation successful");
+			_MESSAGE("Local trampoline creation successful");
 		} else {
-			_FATALERROR("[FATAL ERROR] Local trampoline creation failed!\n");
+			_FATALERROR("Local trampoline creation failed!\n");
 			return false;
 		}
 
 		InstallHooks();
-		_MESSAGE("[MESSAGE] Installed hooks");
+		_MESSAGE("Installed hooks");
 
 		return true;
 	}
