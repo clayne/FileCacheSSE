@@ -7,6 +7,62 @@
 #include "SKSE/API.h"
 
 
+namespace
+{
+	class StopWatch
+	{
+	public:
+		static StopWatch* GetSingleton()
+		{
+			static StopWatch singleton;
+			return &singleton;
+		}
+
+		void Start()
+		{
+			_start = std::chrono::high_resolution_clock::now();
+		}
+
+		void Stop()
+		{
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double> diff = end - _start;
+			_MESSAGE("Loading took: %gs", diff.count());
+		}
+
+	private:
+		StopWatch() = default;
+		StopWatch(const StopWatch&) = delete;
+		StopWatch(StopWatch&&) = delete;
+		~StopWatch() = default;
+
+		StopWatch& operator=(const StopWatch&) = delete;
+		StopWatch& operator=(StopWatch&&) = delete;
+
+		std::chrono::time_point<std::chrono::high_resolution_clock> _start;
+	};
+
+
+	void MessageHandler(SKSE::MessagingInterface::Message* a_msg)
+	{
+		switch (a_msg->type) {
+		case SKSE::MessagingInterface::kPostPostLoad:
+			{
+				auto stopWatch = StopWatch::GetSingleton();
+				stopWatch->Start();
+			}
+			break;
+		case SKSE::MessagingInterface::kDataLoaded:
+			{
+				auto stopWatch = StopWatch::GetSingleton();
+				stopWatch->Stop();
+			}
+			break;
+		}
+	}
+}
+
+
 extern "C" {
 	bool SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 	{
@@ -60,6 +116,14 @@ extern "C" {
 			_MESSAGE("Local trampoline creation successful");
 		} else {
 			_FATALERROR("Local trampoline creation failed!\n");
+			return false;
+		}
+
+		auto messaging = SKSE::GetMessagingInterface();
+		if (messaging->RegisterListener("SKSE", MessageHandler)) {
+			_MESSAGE("Messaging interface registration successful");
+		} else {
+			_FATALERROR("Messaging interface registration failed!\n");
 			return false;
 		}
 
