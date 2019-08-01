@@ -1,6 +1,8 @@
 ﻿#include "skse64_common/BranchTrampoline.h"
 #include "skse64_common/skse_version.h"
 
+#include <sstream>
+
 #include "Hooks.h"
 #include "version.h"
 
@@ -27,7 +29,13 @@ namespace
 		{
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> diff = end - _start;
-			_MESSAGE("Loading took: %gs", diff.count());
+			std::stringstream strstr;
+			strstr << "Loading took: " << diff.count() << "s";
+			_MESSAGE("%s", strstr.str().c_str());
+			auto console = RE::ConsoleManager::GetSingleton();
+			if (console) {
+				console->Print("%s", strstr.str().c_str());
+			}
 		}
 
 	private:
@@ -67,9 +75,11 @@ extern "C" {
 	bool SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 	{
 		SKSE::Logger::OpenRelative(FOLDERID_Documents, L"\\My Games\\Skyrim Special Edition\\SKSE\\FileCacheSSE.log");
-		SKSE::Logger::SetPrintLevel(SKSE::Logger::Level::kDebugMessage);
 #if _DEBUG
+		SKSE::Logger::SetPrintLevel(SKSE::Logger::Level::kDebugMessage);
 		SKSE::Logger::SetFlushLevel(SKSE::Logger::Level::kDebugMessage);
+#else
+		SKSE::Logger::SetPrintLevel(SKSE::Logger::Level::kMessage);
 #endif
 		SKSE::Logger::UseLogStamp(false);
 

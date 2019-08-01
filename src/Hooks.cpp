@@ -97,11 +97,10 @@ namespace
 		-> Result
 	{
 		auto result = Result::kUnhandled;
-		lock.lock();
+		RE::BSUniqueLockGuard locker(lock);
 		if (locations) {
 			result = locations->current->LocateFile(a_relPath, a_stream, a_location, a_delim);
 		}
-		lock.unlock();
 		return result;
 	}
 
@@ -110,11 +109,10 @@ namespace
 		-> Result
 	{
 		auto result = Result::kUnhandled;
-		lock.lock();
+		RE::BSUniqueLockGuard locker(lock);
 		if (locations) {
 			result = locations->current->TraverseFiles(a_relPath, a_traverser);
 		}
-		lock.unlock();
 		return result;
 	}
 
@@ -123,11 +121,10 @@ namespace
 		-> Result
 	{
 		auto result = Result::kUnhandled;
-		lock.lock();
+		RE::BSUniqueLockGuard locker(lock);
 		if (locations) {
 			result = locations->current->LocateFileData(a_relPath, a_fileData, a_location);
 		}
-		lock.unlock();
 		return result;
 	}
 
@@ -136,11 +133,10 @@ namespace
 		-> Result
 	{
 		auto result = Result::kUnhandled;
-		lock.lock();
+		RE::BSUniqueLockGuard locker(lock);
 		if (locations) {
 			result = locations->current->GetFileData(a_relPath, a_fileData);
 		}
-		lock.unlock();
 		return result;
 	}
 
